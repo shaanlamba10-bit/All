@@ -23,4 +23,13 @@
 //   const rateLimit = require('express-rate-limit');
 //   module.exports = rateLimit({ ...options });
 
-module.exports = (req, res, next) => next(); // TODO: replace this stub
+const rateLimit = require('express-rate-limit');
+
+// A Redis-backed store such as rate-limit-redis is needed across instances so a load balancer cannot split attempts between separate in-memory counters.
+module.exports = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 5,
+	standardHeaders: true,
+	legacyHeaders: false,
+	skipSuccessfulRequests: true,
+});

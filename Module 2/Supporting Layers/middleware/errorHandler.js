@@ -7,17 +7,10 @@
  *   - process.env.NODE_ENV is read directly here. It should come from config.nodeEnv.
  */
 
-// DUPLICATED definition — should move to utils/AppError.js
-class AppError extends Error {
-  constructor(message, statusCode) {
-    super(message);
-    this.statusCode = statusCode;
-    this.isOperational = true;
-  }
-}
+const AppError = require('../utils/AppError');
 
 // INLINE process.env read — should move to config/index.js (config.nodeEnv)
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const NODE_ENV = require('../config').nodeEnv;
 
 module.exports = function errorHandler(err, req, res, next) {
   const status = err.statusCode || 500;

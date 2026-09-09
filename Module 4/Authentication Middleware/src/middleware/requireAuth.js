@@ -22,9 +22,17 @@
 //    Do NOT distinguish TokenExpiredError from JsonWebTokenError in the client response.
 //
 // ─────────────────────────────────────────────────────────────────────────────
-// const jwt = require('jsonwebtoken');  ← uncomment when you start implementing
+const jwt = require('jsonwebtoken');
 
 module.exports = function requireAuth(req, res, next) {
-  // Replace this with your implementation:
-  next();
+  const header = req.headers.authorization ?? '';
+  const match = header.match(/^Bearer ([^\s]+)$/i);
+  const unauthorized = () => res.status(401).json({ error: { code: 'AUTH_REQUIRED', message: 'Authentication required' } });
+  if (!match) return unauthorized();
+  try {
+    req.user = jwt.verify(match[1], process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    return next();
+  } catch (error) {
+    return unauthorized();
+  }
 };
