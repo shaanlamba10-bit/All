@@ -1,35 +1,17 @@
 'use strict';
 // middleware/rateLimiter.js
-//
-// YOUR TASK: replace this pass-through with a real rate limiter.
-//
-// Right now this middleware lets EVERY request through, so the login route can be
-// brute-forced without limit. Build a strict limiter with `express-rate-limit`
-// (already in package.json) that is exported as the middleware used by the three
-// auth routes in src/routes/auth.js.
-//
-// Requirements (checked by the tests):
-//   - windowMs: 15 minutes
-//   - max: 5 attempts per window per IP
-//   - after the limit, respond with 429 and a `Retry-After` header
-//   - standardHeaders: true, legacyHeaders: false
-//   - (recommended) skipSuccessfulRequests: true so only FAILED attempts count
-//
-// Also add a COMMENT explaining how a Redis-backed store (rate-limit-redis) would
-// replace the default in-memory store in a multi-instance deployment, and why the
-// in-memory store is not enough when several instances run behind a load balancer.
-//
-// Hint: express-rate-limit returns a middleware function — export it directly:
-//   const rateLimit = require('express-rate-limit');
-//   module.exports = rateLimit({ ...options });
 
 const rateLimit = require('express-rate-limit');
 
-// A Redis-backed store such as rate-limit-redis is needed across instances so a load balancer cannot split attempts between separate in-memory counters.
+// In a multi-instance deployment, configure rate-limit-redis as the store for
+// this limiter so every app instance shares the same counters and reset times.
+// The default in-memory store is local to one process; behind a load balancer,
+// requests can land on different instances and each would allow its own five
+// attempts, making the effective limit much higher than intended.
 module.exports = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 5,
-	standardHeaders: true,
-	legacyHeaders: false,
-	skipSuccessfulRequests: true,
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
 });
